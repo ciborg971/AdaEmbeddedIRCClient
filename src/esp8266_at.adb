@@ -19,6 +19,7 @@ package body esp8266_at is
 	procedure Reset is 
 	begin
 		Send ("AT+RST\r\n");
+		delay(0.5);
 	end Reset;
 
 	procedure Wifi_Mode (mode : Esp_Mode) is
@@ -47,7 +48,7 @@ package body esp8266_at is
 
 	procedure AP_Quit is 
 	begin
-		Send ("AT+CWQAP" & "\r\n");
+		Send ("AT+CWQAP\r\n");
 	end AP_Quit;
 
 	procedure AP_Param (param : String) is
