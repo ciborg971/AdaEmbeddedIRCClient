@@ -43,10 +43,103 @@ with esp8266_at;
 with System;
 
 procedure Main is
-   pragma Priority (System.Priority'First);
+	pragma Priority (System.Priority'First);
+
+	-- Change according to your network 
+	Wifi_Name : Constant String := "wifi_name";
+	Wifi_Pswd : Constant String := "pswd";
+
+	-- IRC messages record
+	-- Choose size with available memory in mind
+	type IRCMessage (Size : Natural) is 
+		record
+			prefix : String(1 .. Size);
+			nickname : String(1 .. Size);
+			username : String(1 .. Size);
+			host : String(1 .. Size);
+			command : String(1 .. Size);
+			parameters : String(1 .. Size);
+			test : String(1 .. Size);
+		end record:
+
+	IMsg : IRCMessage(1024) := 
+		(prefix => (others => ' '),
+		(nickname  => (others => ' '),
+		(username  => (others => ' '),
+		(host  => (others => ' '),
+		(command  => (others => ' '),
+		(parameters  => (others => ' '),
+		(test  => (others => ' '));
+
+	-- IRC related function
+	procedure SendIRC (Data : String) is
+	begin
+		esp8266_at.Send (Data & "\r\n");
+	end SendIRC;
+
+	procedure SendMsg (Recipient : String; Data : String) is
+	begin
+		SendIRC ("PRIVMSG " & Recipient & " :" & Data);
+	end SendMsg;
+
+	procedure PswdIRC (pswd : String) is
+	begin
+		SendIRC ("PASS " & pswd);
+	end PswdIRC;
+
+	procedure NickIRC (nickname : String) is
+	begin
+		SendIRC ("NICK " & nickname);
+	end NickIRC;
+
+	procedure UserIRC (username : String; fullname : String) is
+	begin
+		SendIRC ("USER " & username & " * * :" & fullname); -- * * means unused parameter
+		-- TODO check this parameter...
+	end UserIRC;
+
+	procedure ParseIRC (Data : String) is
+		cursor1 : Natural := 0;
+		cursor2 : Natural := 0;
+	begin
+		-- Prefix parsing (optional)
+		if (Data'First = ':') then
+			Search_Blank_Loop :
+			for cursor1 in Data'Range loop
+				exit Search_Blank_Loop when Data (cursor1) = ' ';
+			end loop;
+			IMsg.prefix(1 .. cursor1) := Data (1 .. cursor1);
+
+			Search_At_Loop :
+			for cursor2 in IMsg.prefix'Range loop
+				exit Search_Blank_Loop when IMsg.prefix (cursor2) = '@';
+			end loop;
+			
+			if cursor2 /= IMsg.prefix'Last then -- TODO test this
+				IMsg.nick (1 .. cursor2) := IMsg.prefix (1 .. cursor2);
+				IMsg.host (1 .. cursor1 - cursor2) := IMsg.prefix(cursor2 .. cursor1);
+			end if;
+
+			cursor1 := cursor1 + 1; -- get rid of blank
+		end if;
+
+
+
+	end ParseIRC;
 begin
-   esp8266_at.Init;
-   loop
-      null;
-   end loop;
+	-- ESP8266 network configuration
+	esp8266_at.Init;
+	esp8266_at.Reset;
+	esp8266_at.Wifi_Mode(esp8266_at.STA);
+	esp8266_at.AP_Join(Wifi_Name, Wifi_Pswd);
+	esp8266_at.Multiple_conn(esp8266_at.Single);
+	esp8266_at.Connect_Single(esp8266_at.TCP, "irc.rezosup.org", "6697");
+
+	-- IRC Registration
+	NickIRC ("amy");
+	UserIRC ("amy", "Amy Pond");
+
+	loop
+		null;
+	end loop;
 end Main;
