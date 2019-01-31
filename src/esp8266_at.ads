@@ -4,30 +4,34 @@ package esp8266_at is
    
    procedure Reset;
    
-   function Wifi_Mode (mode : Esp_Mode) return Boolean;
+   procedure Wifi_Mode (mode : Esp_Mode);
    
    procedure AP_Join (ssid : String ; pswd : String);
    
    procedure Init;
    
-   function AP_Quit return Boolean;
+   procedure AP_Quit;
    
-   function AP_Param (param : String) return Boolean;
+   procedure AP_Param (param : String);
    
    type Connection_Type is (UDP, TCP);
    
-   function Connect_Single (conType : Connection_Type; ip : String; port : String) return Boolean;
+   procedure Connect_Single (conType : Connection_Type; ip : String; port : String);
    
-   function Write_Data_Single (data : String) return Boolean;
+   procedure Write_Data_Single (data : String);
    
    procedure Disconnect_Single;
    
    type Mult is (Single, Multiple);
    
-   function Multiple_conn (Var : Mult) return Boolean;
+   procedure Multiple_conn (Var : Mult);
    
    procedure Read_Data_Single;
    
    procedure Send (This : String);
+
+   function GetInMsg return String;
+
+   procedure ClearInMsg;
 end 
 esp8266_at;

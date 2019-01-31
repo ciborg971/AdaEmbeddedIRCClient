@@ -1,42 +1,6 @@
-------------------------------------------------------------------------------
---                                                                          --
---                             GNAT EXAMPLE                                 --
---                                                                          --
---             Copyright (C) 2014, Free Software Foundation, Inc.           --
---                                                                          --
--- GNAT is free software;  you can  redistribute it  and/or modify it under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 3,  or (at your option) any later ver- --
--- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
--- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
--- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
---                                                                          --
---                                                                          --
---                                                                          --
---                                                                          --
---                                                                          --
--- You should have received a copy of the GNU General Public License and    --
--- a copy of the GCC Runtime Library Exception along with this program;     --
--- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
--- <http://www.gnu.org/licenses/>.                                          --
---                                                                          --
--- GNAT was originally developed  by the GNAT team at  New York University. --
--- Extensive contributions were provided by Ada Core Technologies Inc.      --
---                                                                          --
-------------------------------------------------------------------------------
-
---  The file declares the main procedure for the demonstration.
-
 with Driver;               pragma Unreferenced (Driver);
---  The Driver package contains the task that actually controls the app so
---  although it is not referenced directly in the main procedure, we need it
---  in the closure of the context clauses so that it will be included in the
---  executable.
 
 with Last_Chance_Handler;  pragma Unreferenced (Last_Chance_Handler);
---  The "last chance handler" is the user-defined routine that is called when
---  an exception is propagated. We need it in the executable, therefore it
---  must be somewhere in the closure of the context clauses.
 
 with esp8266_at;
 
@@ -53,24 +17,16 @@ procedure Main is
 	-- Choose size with available memory in mind
 	type IRCMessage (Size : Natural) is 
 		record
-			prefix : String(1 .. Size);
-			nickname : String(1 .. Size);
-			username : String(1 .. Size);
-			host : String(1 .. Size);
-			command : String(1 .. Size);
-			parameters : String(1 .. Size);
-			test : String(1 .. Size);
-		end record:
+			prefix : String(1 .. Size) := (others => ' ');
+			nickname : String(1 .. Size) := (others => ' ');
+			username : String(1 .. Size) := (others => ' ');
+			host : String(1 .. Size) := (others => ' ');
+			command : String(1 .. Size) := (others => ' ');
+			parameters : String(1 .. Size) := (others => ' ');
+			text : String(1 .. Size):= (others => ' ');
+		end record;
 
-	IMsg : IRCMessage(1024) := 
-		(prefix => (others => ' '),
-		(nickname  => (others => ' '),
-		(username  => (others => ' '),
-		(host  => (others => ' '),
-		(command  => (others => ' '),
-		(parameters  => (others => ' '),
-		(test  => (others => ' '));
-
+	IMsg : IRCMessage(255); 
 	-- IRC related function
 	procedure SendIRC (Data : String) is
 	begin
@@ -99,33 +55,96 @@ procedure Main is
 	end UserIRC;
 
 	procedure ParseIRC (Data : String) is
-		cursor1 : Natural := 0;
-		cursor2 : Natural := 0;
+		cursor1 : Natural := 1;
+		cursor2 : Natural := 1;
 	begin
 		-- Prefix parsing (optional)
-		if (Data'First = ':') then
-			Search_Blank_Loop :
-			for cursor1 in Data'Range loop
-				exit Search_Blank_Loop when Data (cursor1) = ' ';
+		if (Data (Data'First) = ':') then
+			for I in Data'Range loop
+				if Data (I) = ' ' then
+					cursor1 := I;
+				end if;
 			end loop;
-			IMsg.prefix(1 .. cursor1) := Data (1 .. cursor1);
 
-			Search_At_Loop :
-			for cursor2 in IMsg.prefix'Range loop
-				exit Search_Blank_Loop when IMsg.prefix (cursor2) = '@';
+			IMsg.prefix(1 .. cursor1) := Data (Data'First .. cursor1);
+
+			for I in Data'Range loop
+				if Data (I) = '@' then
+					cursor2 := I;
+				end if;
 			end loop;
-			
+
 			if cursor2 /= IMsg.prefix'Last then -- TODO test this
-				IMsg.nick (1 .. cursor2) := IMsg.prefix (1 .. cursor2);
+				IMsg.nickname (1 .. cursor2) := IMsg.prefix (1 .. cursor2);
 				IMsg.host (1 .. cursor1 - cursor2) := IMsg.prefix(cursor2 .. cursor1);
 			end if;
 
 			cursor1 := cursor1 + 1; -- get rid of blank
 		end if;
 
+		-- Command parsing
+		for I in cursor1 .. Data'Last loop
+			if Data (I) = ' ' then
+				cursor2 := I;
+			end if;
+		end loop;
 
+		IMsg.command (1 .. cursor2 - cursor1) := Data (cursor1 .. cursor2);
 
+		-- Text parsing
+		cursor1 := cursor2 + 1;
+
+		if (cursor2 < Data'Last) then
+			if (Data (cursor2) = ':') then
+				IMsg.text (1 .. Data'Last - cursor2) := Data (cursor2 .. Data'Last);
+			else
+				for J in cursor2 .. Data'Last loop
+					if (Data (J) = ':') then
+						IMsg.parameters (1 .. J - cursor2) := Data (cursor2 .. J);
+						IMsg.text (1 .. Data'Last - cursor2) := Data (J .. Data'Last);
+					end if;
+				end loop;				
+			end if;
+		end if;
 	end ParseIRC;
+
+	-- Remove blank from IMsg field
+	function RemoveBlank (Data : String) return String is
+	begin
+		for I in reverse Data'Range loop
+			if (Data (I) /= ' ') then
+				return Data(Data'First .. I);
+			end if;
+		end Loop;
+		return "";
+	end RemoveBlank;
+
+	procedure FlushIRCMessage is
+	begin
+		IMsg.prefix := (others => ' ');
+		IMsg.nickname := (others => ' ');
+		IMsg.username := (others => ' ');
+		IMsg.host := (others => ' ');
+		IMsg.command := (others => ' ');
+		IMsg.parameters  := (others => ' ');
+		IMsg.text := (others => ' ');
+	end flushIRCMessage;
+
+	procedure ReceiveIRC is
+	begin
+		FlushIRCMessage;
+		esp8266_at.ClearInMsg;
+		esp8266_at.Read_Data_Single;
+		delay(0.5); -- wait for buffer to fill
+		if (esp8266_at.GetInMsg (1 .. 4) = "+IPD") then
+			for I in esp8266_at.GetInMsg'Range loop
+				if (esp8266_at.GetInMsg (I) = ':') then
+					ParseIRC(esp8266_at.GetInMsg (4 .. esp8266_at.GetInMsg'Last));
+				end if;
+			end loop;
+		end if;
+	end ReceiveIRC;
+
 begin
 	-- ESP8266 network configuration
 	esp8266_at.Init;
@@ -138,7 +157,7 @@ begin
 	-- IRC Registration
 	NickIRC ("amy");
 	UserIRC ("amy", "Amy Pond");
-
+	ReceiveIRC;
 	loop
 		null;
 	end loop;

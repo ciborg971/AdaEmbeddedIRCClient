@@ -18,26 +18,25 @@ package body esp8266_at is
 
 	procedure Reset is 
 	begin
-		Send ("AT+RST");
+		Send ("AT+RST\r\n");
 	end Reset;
 
-	function Wifi_Mode (mode : Esp_Mode) return Boolean is
+	procedure Wifi_Mode (mode : Esp_Mode) is
 		Var : Constant String := "AT+CWMODE=";
 	begin
 		case mode is
 			when STA =>
-				Send (Var & "1");
+				Send (Var & "1\r\n");
 			when AP =>
-				Send (Var & "2");
+				Send (Var & "2\r\n");
 			when others =>
-				Send (Var & "3");
+				Send (Var & "3\r\n");
 		end case;
-		return True;
 	end Wifi_Mode;
 
 	procedure AP_Join (ssid : String; pswd : String) is
 	begin
-		Send ("AT+CWJAP=" & ssid & "," & pswd);
+		Send ("AT+CWJAP=" & ssid & "," & pswd & "\r\n");
 	end AP_Join;
 
 	procedure Init is 
@@ -46,51 +45,59 @@ package body esp8266_at is
 		Configure (COM, Baud_Rate => 9_600); -- Can 115_200 on some board
 	end Init;
 
-	function AP_Quit return Boolean is 
+	procedure AP_Quit is 
 	begin
-		Send ("AT+CWQAP");
-		return True;
+		Send ("AT+CWQAP" & "\r\n");
 	end AP_Quit;
 
-	function AP_Param (param : String) return Boolean is
+	procedure AP_Param (param : String) is
 	begin
-		Send ("AT+CWSAP=" & param);
-		return True;
+		Send ("AT+CWSAP=" & param & "\r\n");
 	end AP_Param;
 
-	function Connect_Single (conType : Connection_Type; ip : String; port : String) return Boolean is
+	procedure Connect_Single (conType : Connection_Type; ip : String; port : String) is
 		Var : Constant String := "AT+CIPSTART="; 
 	begin
 		if conType = UDP then
-			Send (Var & "UDP" & "," & ip & "," & port);
+			Send (Var & "UDP" & "," & ip & "," & port & "\r\n");
 		else
-			Send (Var & "TCP" & "," & ip & "," & port);
+			Send (Var & "TCP" & "," & ip & "," & port & "\r\n");
 		end if;
-		return True;
 	end Connect_Single;
 
-	function Write_Data_Single (data : String) return Boolean is
+	procedure Write_Data_Single (data : String) is
 	begin
-		return True;
+		Send ("AT+CIPSEND=" & Integer'Image(data'Length) & "\r\n");
+		Send (data & "\r\n");
 	end Write_Data_Single;
 
 	procedure Disconnect_Single is
 	begin
-		Send ("AT+CIPCLOSE");
+		Send ("AT+CIPCLOSE\r\n");
 	end Disconnect_Single;
 
-	function Multiple_conn (Var : Mult) return Boolean is
+	procedure Multiple_conn (Var : Mult) is
 	begin
 		if Var = Single then
-			Send ("AT+CIPMUX=0");
+			Send ("AT+CIPMUX=0\r\n");
 		else
-			Send ("AT+CIPMUX=1");
+			Send ("AT+CIPMUX=1\r\n");
 		end if;
-		return True;
 	end Multiple_conn;
 
 	procedure Read_Data_Single is
 	begin
 		Get (COM, Incoming'Unchecked_Access);
 	end Read_Data_Single;
+
+	function GetInMsg return String is
+	begin
+		return Incoming.Content;
+	end GetInMsg;
+
+	procedure ClearInMsg is
+	begin
+		Incoming.Clear;
+	end ClearInMsg;
+
 end esp8266_at;
