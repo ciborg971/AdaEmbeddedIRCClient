@@ -6,8 +6,20 @@ with esp8266_at;
 
 with System;
 
+with STM32.Board;           use STM32.Board;
+
+with BMP_Fonts;
+
+with HAL.Bitmap;            use HAL.Bitmap;
+
+with HAL.Framebuffer;       use HAL.Framebuffer;
+
+with LCD_Std_Out;
+
 procedure Main is
 	pragma Priority (System.Priority'First);
+
+	BG_Color : constant Bitmap_Color := (Alpha => 255, others => 64);
 
 	-- Change according to your network 
 	Wifi_Name : Constant String := "wifi_name";
@@ -17,13 +29,13 @@ procedure Main is
 	-- Choose size with available memory in mind
 	type IRCMessage (Size : Natural) is 
 		record
-			prefix : String(1 .. Size) := (others => ' ');
-			nickname : String(1 .. Size) := (others => ' ');
-			username : String(1 .. Size) := (others => ' ');
-			host : String(1 .. Size) := (others => ' ');
-			command : String(1 .. Size) := (others => ' ');
-			parameters : String(1 .. Size) := (others => ' ');
-			text : String(1 .. Size):= (others => ' ');
+			prefix : String(1 .. Size) := (others => Character'Val (0));
+			nickname : String(1 .. Size) := (others => Character'Val (0));
+			username : String(1 .. Size) := (others => Character'Val (0));
+			host : String(1 .. Size) := (others => Character'Val (0));
+			command : String(1 .. Size) := (others => Character'Val (0));
+			parameters : String(1 .. Size) := (others => Character'Val (0));
+			text : String(1 .. Size):= (others => Character'Val (0));
 		end record;
 
 	IMsg : IRCMessage(255); 
@@ -121,13 +133,13 @@ procedure Main is
 
 	procedure FlushIRCMessage is
 	begin
-		IMsg.prefix := (others => ' ');
-		IMsg.nickname := (others => ' ');
-		IMsg.username := (others => ' ');
-		IMsg.host := (others => ' ');
-		IMsg.command := (others => ' ');
-		IMsg.parameters  := (others => ' ');
-		IMsg.text := (others => ' ');
+		IMsg.prefix := (others => Character'Val (0));
+		IMsg.nickname := (others => Character'Val (0));
+		IMsg.username := (others => Character'Val (0));
+		IMsg.host := (others => Character'Val (0));
+		IMsg.command := (others => Character'Val (0));
+		IMsg.parameters  := (others => Character'Val (0));
+		IMsg.text := (others => Character'Val (0));
 	end flushIRCMessage;
 
 	procedure ReceiveIRC is
@@ -145,6 +157,19 @@ procedure Main is
 		end if;
 	end ReceiveIRC;
 
+	procedure PrintLastIRCMessage is
+	begin
+	   LCD_Std_Out.Put_Line(IMsg.prefix & IMsg.Nickname
+				  & "<" & Imsg.username & "@" & Imsg.host & ">"
+				  & " /" & Imsg.command & Imsg.parameters);
+	   LCD_Std_Out.Put_Line(Imsg.text);
+	end PrintLastIRCMessage;
+
+	procedure Clear_Screen is
+	begin
+	   LCD_Std_Out.Clear_Screen;
+	   Display.Update_Layer (1, Copy_Back => True);
+	end Clear_Screen;
 begin
 	-- ESP8266 network configuration
 	esp8266_at.Init;
@@ -154,11 +179,22 @@ begin
 	esp8266_at.Multiple_conn(esp8266_at.Single);
 	esp8266_at.Connect_Single(esp8266_at.TCP, "irc.rezosup.org", "6697");
 
+	-- init LCD screen
+	Display.Initialize;
+	Display.Initialize_Layer (1, ARGB_8888);
+
+	LCD_Std_Out.Set_Orientation (Landscape);
+	LCD_Std_Out.Set_Font (BMP_Fonts.Font8x8);
+	LCD_Std_Out.Current_Background_Color := BG_Color;
+
+	Clear_Screen;
+
 	-- IRC Registration
 	NickIRC ("amy");
 	UserIRC ("amy", "Amy Pond");
 	ReceiveIRC;
+	PrintLastIRCMessage;
 	loop
-		null;
+	   null;
 	end loop;
 end Main;
