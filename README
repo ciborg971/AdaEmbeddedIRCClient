@@ -1,20 +1,26 @@
-AdaEmbedddedIRCClient is a project consisting about mixing the 3 best things ever :
-Ada
-Esp8266
-IRC
+AdaEmbeddedIRCClient is a project that mixes the 3 best things ever :
+- Ada
+- ESP8266
+- IRC
 
-It's a small IRC client running on the STM32F429 Discovery. This board is really nice
-with a fantastic touch display plenty of ram and rom but sadly no wifi on board.
+It consists of a small IRC client running on the STM32F429 Discovery board.
+This board is really nice, with a fantastic touch display, plenty of RAM
+and ROM, but sadly with no Wi-Fi controller.
 
-So to get access to internet we decided to use a small microcontroler called ESP8266.
-You can find the ESP-01 for 1.70 dollars, it's shipped with a firmware that let you
-control it by sending AT commands via UART.
+So, to get access to the Internet, we decided to use a small
+microcontroller, called ESP8266.
+The ESP-01 is a board that embeds a microcontroller.
+The ESP-01 can be found for 1.70 dollars, and it's shipped with a
+firmware that lets you control it by sending AT commands via UART.
 
-More information about this AT command set here => https://nurdspace.nl/ESP8266#AT_Commands
+More information about this AT command can be found here :
+https://nurdspace.nl/ESP8266#AT_Commands
 
-We first made a little driver to simplify the communication between the ESP8266 and 
-the STM32F429 Discovery. We had some contract to check that does not overflow the Incomming
-and Outgoing buffer.
+We first made a little driver to simplify the communication between the
+ESP8266 and the STM32F429 Discovery.
+We added several Ada contracts to check that the buffers for incoming
+and for outgoing data do not overflow.
 
-Then, we created some functions to connect to an IRC server, connect with a Nickname,
-Username, Password and finaly parse incomming IRC frame.
+Then, we created some functions to connect to an IRC server, connect
+with a nickname, an username, and a password, and finally parse
+incomming IRC frames.
