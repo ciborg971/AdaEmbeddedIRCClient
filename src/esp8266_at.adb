@@ -16,7 +16,7 @@ package body esp8266_at is
 		Blocking.Put (COM, Outgoing'Unchecked_Access);
 	end Send;
 
-	procedure Reset is 
+	procedure Reset is
 	begin
 		Send ("AT+RST\r\n");
 		delay(0.5);
@@ -40,13 +40,13 @@ package body esp8266_at is
 		Send ("AT+CWJAP=" & ssid & "," & pswd & "\r\n");
 	end AP_Join;
 
-	procedure Init is 
+	procedure Init is
 	begin
 		Initialize (COM);
 		Configure (COM, Baud_Rate => 9_600); -- Can 115_200 on some board
 	end Init;
 
-	procedure AP_Quit is 
+	procedure AP_Quit is
 	begin
 		Send ("AT+CWQAP\r\n");
 	end AP_Quit;
@@ -57,7 +57,7 @@ package body esp8266_at is
 	end AP_Param;
 
 	procedure Connect_Single (conType : Connection_Type; ip : String; port : String) is
-		Var : Constant String := "AT+CIPSTART="; 
+		Var : Constant String := "AT+CIPSTART=";
 	begin
 		if conType = UDP then
 			Send (Var & "UDP" & "," & ip & "," & port & "\r\n");

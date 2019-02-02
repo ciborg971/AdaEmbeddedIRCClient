@@ -1,33 +1,26 @@
+with BMP_Fonts;
 with Driver;               pragma Unreferenced (Driver);
-
+with HAL.Bitmap;            use HAL.Bitmap;
+with HAL.Framebuffer;       use HAL.Framebuffer;
+with LCD_Std_Out;
 with Last_Chance_Handler;  pragma Unreferenced (Last_Chance_Handler);
-
-with esp8266_at;
-
+with STM32.Board;           use STM32.Board;
 with System;
 
-with STM32.Board;           use STM32.Board;
-
-with BMP_Fonts;
-
-with HAL.Bitmap;            use HAL.Bitmap;
-
-with HAL.Framebuffer;       use HAL.Framebuffer;
-
-with LCD_Std_Out;
+with esp8266_at;
 
 procedure Main is
 	pragma Priority (System.Priority'First);
 
 	BG_Color : constant Bitmap_Color := (Alpha => 255, others => 64);
 
-	-- Change according to your network 
+	-- Change according to your network
 	Wifi_Name : Constant String := "wifi_name";
 	Wifi_Pswd : Constant String := "pswd";
 
 	-- IRC messages record
 	-- Choose size with available memory in mind
-	type IRCMessage (Size : Natural) is 
+	type IRCMessage (Size : Natural) is
 		record
 			prefix : String(1 .. Size) := (others => Character'Val (0));
 			nickname : String(1 .. Size) := (others => Character'Val (0));
@@ -38,7 +31,7 @@ procedure Main is
 			text : String(1 .. Size):= (others => Character'Val (0));
 		end record;
 
-	IMsg : IRCMessage(255); 
+	IMsg : IRCMessage(255);
 	-- IRC related function
 	procedure SendIRC (Data : String) is
 	begin
