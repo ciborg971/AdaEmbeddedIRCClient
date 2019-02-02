@@ -19,15 +19,15 @@ package LCD_Console is
 
    procedure Init;
 
-   procedure Clear_Screen;
+   procedure Clear_Screen
+     with Post => (for all I in Console_Buffer.Iterate
+		     => Console_Buffer (I) = ' ');
    procedure Flush;
 
    procedure Put (Msg : Character);
    procedure Put (Msg : String);
    procedure Put_Line (Msg : String);
 
-   function Console_Buffer_Is_Shifted (New_Buffer : Vector; Old_Buffer : Vector)
-				      return Boolean;
    procedure New_Line
      with Post => (
 	Cur_Line + 1 < Console_Buffer_Height or else
@@ -35,6 +35,8 @@ package LCD_Console is
 	);
 
    -- internal definitions
+
+   -- a buffer holding all the characters that are printed on the screen
    Console_Buffer : Vector;
 
    -- current position in the Console_Buffer
@@ -43,4 +45,8 @@ package LCD_Console is
 
    Console_Buffer_Width : Natural;
    Console_Buffer_Height : Natural;
+
+   -- contract helpers
+   function Console_Buffer_Is_Shifted (New_Buffer : Vector; Old_Buffer : Vector)
+				      return Boolean;
 end LCD_Console;
