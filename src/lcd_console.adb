@@ -1,4 +1,4 @@
-with Ada.Containers.Vectors;
+with Ada.Containers; use Ada.Containers;
 with Bitmap_Color_Conversion; use Bitmap_Color_Conversion;
 with Bitmapped_Drawing;
 with HAL.Bitmap;            use HAL.Bitmap;
@@ -9,24 +9,15 @@ package body LCD_Console is
    Char_Width  : Natural;
    Char_Height : Natural;
 
-   Console_Buffer_Width : Natural;
-   Console_Buffer_Height : Natural;
-
-   package Character_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => Natural,
-      Element_Type => Character);
-   use Character_Vectors;
-
-   Console_Buffer : Vector;
-
-   -- current position in the Console_Buffer
-   Cur_Line : Natural := 0;
-   Cur_Col : Natural := 0;
-
    procedure Draw_Char (X, Y : Natural; Msg : Character);
    procedure Internal_Put (Msg : Character);
    procedure Internal_Put (Msg : String);
    procedure Scroll_Down_One_Line;
+
+   function Vector_Is_Shifted (New_Vec : Vector;
+			       Old_Vec : Vector;
+			       Shift_Value : Integer)
+			      return Boolean;
 
    procedure Init is
    begin
@@ -160,4 +151,50 @@ package body LCD_Console is
       Cur_Line := Cur_Line + 1;
       Cur_Col := 0;
    end New_Line;
+
+   -- verifies New_Vec is the same as Old_Vec, but with the first
+   -- 'Shift_Value' elements removed
+   -- New_Vec may contain more elements than Old_Vec
+   function Vector_Is_Shifted (New_Vec : Vector;
+			       Old_Vec : Vector;
+			       Shift_Value : Integer)
+			      return Boolean is
+      N, O : Character;
+   begin
+      for I in 0 .. (Integer (New_Vec.Length) - 1 - Shift_Value) loop
+	 N := New_Vec (I);
+	 O := Old_Vec (I + Shift_Value);
+	 if N /= O then
+	   return False;
+	 end if;
+      end loop;
+
+      return True;
+   end Vector_Is_Shifted;
+
+   -- verifies the first line of Console_Buffer has been removed, and a
+   -- line of blank characters has been added
+   function Console_Buffer_Is_Shifted (New_Buffer : Vector; Old_Buffer : Vector)
+			      return Boolean is
+      J : Integer;
+   begin
+      if New_Buffer.Length /= Old_Buffer.Length then
+	 return False;
+      end if;
+
+      if not Vector_Is_Shifted (New_Buffer, Old_Buffer,
+				Console_Buffer_Width) then
+	 return False;
+      end if;
+
+      -- verify the last line is made of blank characters
+      for I in 0 .. Console_Buffer_Width loop
+	 J := Integer (New_Buffer.Length) - 1 - Console_Buffer_Width + I;
+	 if New_Buffer (J) /= ' ' then
+	    return False;
+	 end if;
+      end loop;
+
+      return True;
+   end Console_Buffer_Is_Shifted;
 end LCD_Console;
