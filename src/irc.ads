@@ -1,14 +1,11 @@
 package IRC is
-	procedure SendIRC (Data : String);
-	procedure SendMsg (Recipient : String; Data : String);
+	procedure Connect_To_Server (Server_Addr : String; Channel : String);
+	procedure Send_Msg (Recipient : String; Data : String);
+	procedure Receive_Msg;
 
-	procedure PswdIRC (pswd : String);
-	procedure NickIRC (nickname : String);
-	procedure UserIRC (username : String; fullname : String);
-	procedure ParseIRC (Data : String);
+	procedure Set_Nickname (Nickname : String);
+	procedure Set_Username (Username : String; Fullname : String);
+	procedure Set_Password (Pswd : String);
 
-	procedure FlushIRCMessage;
-	procedure ReceiveIRC;
-
-	procedure PrintLastIRCMessage;
+	procedure Print_Last_IRC_Msg;
 end IRC;

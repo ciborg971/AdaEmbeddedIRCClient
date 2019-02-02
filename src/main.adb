@@ -31,7 +31,6 @@ begin
 	esp8266_at.Wifi_Mode(esp8266_at.STA);
 	esp8266_at.AP_Join(Wifi_Name, Wifi_Pswd);
 	esp8266_at.Multiple_conn(esp8266_at.Single);
-	esp8266_at.Connect_Single(esp8266_at.TCP, "irc.rezosup.org", "6697");
 
 	-- init LCD screen
 	Display.Initialize;
@@ -44,12 +43,13 @@ begin
 	Clear_Screen;
 
 	-- IRC Registration
-	IRC.NickIRC ("amy");
-	IRC.UserIRC ("amy", "Amy Pond");
+	IRC.Connect_To_Server ("irc.rezosup.org", "test");
+	IRC.Set_Nickname ("test_bot");
+	IRC.Set_Username ("test_bot", "Test Bot");
 
 	loop
-	   IRC.ReceiveIRC;
-	   IRC.PrintLastIRCMessage;
+	   IRC.Receive_Msg;
+	   IRC.Print_Last_IRC_Msg;
 	   Display.Update_Layer (1, Copy_Back => True);
 	end loop;
 end Main;
