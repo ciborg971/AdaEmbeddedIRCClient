@@ -1,4 +1,4 @@
-with LCD_Std_Out;
+with LCD_Console;
 with esp8266_at;
 
 package body IRC is
@@ -138,9 +138,9 @@ package body IRC is
 
 	procedure Print_Last_IRC_Msg is
 	begin
-	   LCD_Std_Out.Put_Line(IMsg.prefix & IMsg.Nickname
+	   LCD_Console.Put_Line(IMsg.prefix & IMsg.Nickname
 				  & "<" & Imsg.username & "@" & Imsg.host & ">"
 				  & " /" & Imsg.command & Imsg.parameters);
-	   LCD_Std_Out.Put_Line(Imsg.text);
+	   LCD_Console.Put_Line(Imsg.text);
 	end Print_Last_IRC_Msg;
 end IRC;
