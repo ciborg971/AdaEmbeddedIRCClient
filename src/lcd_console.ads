@@ -17,19 +17,22 @@ package LCD_Console is
       Element_Type => Character);
    use Character_Vectors;
 
-   procedure Init;
+   procedure Init
+     with Post => Init_Called;
 
    procedure Clear_Screen
-     with Post => (for all I in Console_Buffer.Iterate
+     with Pre => Init_Called,
+     Post => (for all I in Console_Buffer.Iterate
 		     => Console_Buffer (I) = ' ');
    procedure Flush;
 
-   procedure Put (Msg : Character);
-   procedure Put (Msg : String);
-   procedure Put_Line (Msg : String);
+   procedure Put (Msg : Character)	with Pre => Init_Called;
+   procedure Put (Msg : String)		with Pre => Init_Called;
+   procedure Put_Line (Msg : String)	with Pre => Init_Called;
 
    procedure New_Line
-     with Post => (
+     with Pre => Init_Called,
+     Post => (
 	Cur_Line + 1 < Console_Buffer_Height or else
 		Console_Buffer_Is_Shifted (Console_Buffer, Console_Buffer'Old)
 	);
@@ -47,6 +50,7 @@ package LCD_Console is
    Console_Buffer_Height : Natural;
 
    -- contract helpers
+   Init_Called : Boolean := False;
    function Console_Buffer_Is_Shifted (New_Buffer : Vector; Old_Buffer : Vector)
 				      return Boolean;
 end LCD_Console;

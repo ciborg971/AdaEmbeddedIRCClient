@@ -21,6 +21,8 @@ package body LCD_Console is
 
    procedure Init is
    begin
+      Init_Called := True;
+
       Char_Width := BMP_Fonts.Char_Width (Font);
       -- increase the height of a character so that the characters are
       -- rendered with more space between them.
