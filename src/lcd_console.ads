@@ -7,13 +7,17 @@ with HAL.Bitmap;
 -- This package is similar to LCD_Std_Out.
 -- Compared to LCD_Std_Out, with LCD_Console the screen is automatically
 -- scrolled when it is full.
-package LCD_Console is
+package LCD_Console
+  -- This package doesn't compile when Spark_Mode is activated.
+  -- While this issue is present, keep Spark_Mode deactivated.
+  with Spark_Mode => Off
+is
    Text_Color       : constant HAL.Bitmap.Bitmap_Color := HAL.Bitmap.White;
    Background_Color : constant HAL.Bitmap.Bitmap_Color := HAL.Bitmap.Black;
    Font             : constant BMP_Font := Font8x8;
 
    package Character_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => Natural,
+     (Index_Type   => Ada.Containers.Count_Type,
       Element_Type => Character);
    use Character_Vectors;
 

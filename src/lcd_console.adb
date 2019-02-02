@@ -1,4 +1,4 @@
-with Ada.Containers; use Ada.Containers;
+with Ada.Containers; use Ada.Containers; -- for Count_Type
 with Bitmap_Color_Conversion; use Bitmap_Color_Conversion;
 with Bitmapped_Drawing;
 with HAL.Bitmap;            use HAL.Bitmap;
@@ -91,13 +91,15 @@ package body LCD_Console is
 
    procedure Internal_Put (Msg : Character) is
       Y, X : Natural;
+      Idx : Count_Type;
    begin
       if Msg = ASCII.LF then
 	 New_Line;
 	 return;
       end if;
 
-      Console_Buffer (Cur_Line * Console_Buffer_Width + Cur_Col) := Msg;
+      Idx := Count_Type (Cur_Line * Console_Buffer_Width + Cur_Col);
+      Console_Buffer (Idx) := Msg;
 
       Y := Cur_Line * Char_Height;
       X := Cur_Col * Char_Width;
@@ -113,8 +115,8 @@ package body LCD_Console is
    -- shifts all the data printed on the screen one line up
    procedure Scroll_Down_One_Line is
       Y, X : Natural;
-      Buffer_Width : constant Ada.Containers.Count_Type :=
-	Ada.Containers.Count_Type(Console_Buffer_Width);
+      Buffer_Width : constant Count_Type := Count_Type(Console_Buffer_Width);
+      Idx : Count_Type;
    begin
       Console_Buffer.Delete_First(Count => Buffer_Width);
 
@@ -125,7 +127,8 @@ package body LCD_Console is
       	    Y := L * Char_Height;
       	    X := C * Char_Width;
 
-      	    Draw_Char (X, Y, Console_Buffer (L * Console_Buffer_Width + C));
+	    Idx := Count_Type (L * Console_Buffer_Width + C);
+      	    Draw_Char (X, Y, Console_Buffer (Idx));
       	 end loop;
       end loop;
 
@@ -164,8 +167,8 @@ package body LCD_Console is
       N, O : Character;
    begin
       for I in 0 .. (Integer (New_Vec.Length) - 1 - Shift_Value) loop
-	 N := New_Vec (I);
-	 O := Old_Vec (I + Shift_Value);
+	 N := New_Vec (Count_Type (I));
+	 O := Old_Vec (Count_Type (I + Shift_Value));
 	 if N /= O then
 	   return False;
 	 end if;
@@ -192,7 +195,7 @@ package body LCD_Console is
       -- verify the last line is made of blank characters
       for I in 0 .. Console_Buffer_Width loop
 	 J := Integer (New_Buffer.Length) - 1 - Console_Buffer_Width + I;
-	 if New_Buffer (J) /= ' ' then
+	 if New_Buffer (Count_Type (J)) /= ' ' then
 	    return False;
 	 end if;
       end loop;
