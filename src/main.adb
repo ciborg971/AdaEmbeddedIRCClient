@@ -46,9 +46,10 @@ begin
 	-- IRC Registration
 	IRC.NickIRC ("amy");
 	IRC.UserIRC ("amy", "Amy Pond");
-	IRC.ReceiveIRC;
-	IRC.PrintLastIRCMessage;
+
 	loop
-	   null;
+	   IRC.ReceiveIRC;
+	   IRC.PrintLastIRCMessage;
+	   Display.Update_Layer (1, Copy_Back => True);
 	end loop;
 end Main;

@@ -2,6 +2,20 @@ with LCD_Std_Out;
 with esp8266_at;
 
 package body IRC is
+	-- IRC messages record
+	-- Choose size with available memory in mind
+	type IRCMessage (Size : Natural) is
+		record
+			prefix : String(1 .. Size) := (others => Character'Val (0));
+			nickname : String(1 .. Size) := (others => Character'Val (0));
+			username : String(1 .. Size) := (others => Character'Val (0));
+			host : String(1 .. Size) := (others => Character'Val (0));
+			command : String(1 .. Size) := (others => Character'Val (0));
+			parameters : String(1 .. Size) := (others => Character'Val (0));
+			text : String(1 .. Size):= (others => Character'Val (0));
+		end record;
+	IMsg : IRCMessage(255); -- the last IRC message received
+
 	procedure SendIRC (Data : String) is
 	begin
 		esp8266_at.Send (Data & "\r\n");
@@ -77,7 +91,7 @@ package body IRC is
 						IMsg.parameters (1 .. J - cursor2) := Data (cursor2 .. J);
 						IMsg.text (1 .. Data'Last - cursor2) := Data (J .. Data'Last);
 					end if;
-				end loop;				
+				end loop;
 			end if;
 		end if;
 	end ParseIRC;
