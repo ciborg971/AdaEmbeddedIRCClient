@@ -41,7 +41,7 @@ is
    procedure New_Line
      with Pre => Init_Called,
      Post => (
-	Cur_Line + 1 < Console_Buffer_Height or else
+	Cur_Line'Old + 1 < Console_Buffer_Height or else
 		Console_Buffer_Is_Shifted (Console_Buffer, Console_Buffer'Old)
 	);
 
