@@ -26,8 +26,12 @@ is
 
    procedure Clear_Screen
      with Pre => Init_Called,
-     Post => (for all I in Console_Buffer.Iterate
-		     => Console_Buffer (I) = ' ');
+     Post => ((for all I in Console_Buffer.Iterate
+		 => Console_Buffer (I) = ' ')
+		and Cur_Line = 0
+		and Cur_Col = 0
+	);
+
    procedure Flush;
 
    procedure Put (Msg : Character)	with Pre => Init_Called;

@@ -109,10 +109,10 @@ package body IRC is
 		esp8266_at.Send (Data & "\r\n");
 	end Send_Cmd;
 
-	procedure Connect_To_Server (Server_Addr : String; Channel : String) is
+	procedure Connect_To_Server (Server_Addr : String;
+				     Port : String; Channel : String) is
 	begin
-		esp8266_at.Connect_Single(esp8266_at.TCP,
-					  Server_Addr, "194");
+		esp8266_at.Connect_Single(esp8266_at.TCP, Server_Addr, Port);
 		Send_Cmd ("JOIN " & Channel);
 	end Connect_To_Server;
 

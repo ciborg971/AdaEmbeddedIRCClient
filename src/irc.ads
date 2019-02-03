@@ -1,5 +1,6 @@
 package IRC is
-	procedure Connect_To_Server (Server_Addr : String; Channel : String);
+	procedure Connect_To_Server (Server_Addr : String;
+				     Port : String; Channel : String);
 	procedure Send_Msg (Recipient : String; Data : String);
 	procedure Receive_Msg;
 

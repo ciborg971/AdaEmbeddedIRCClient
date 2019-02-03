@@ -23,7 +23,7 @@ begin
 	LCD_Console.Init;
 
 	-- IRC Registration
-	IRC.Connect_To_Server ("irc.rezosup.org", "test");
+	IRC.Connect_To_Server ("irc.rezosup.org", "6667", "test");
 	IRC.Set_Nickname ("test_bot");
 	IRC.Set_Username ("test_bot", "Test Bot");
 
